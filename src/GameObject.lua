@@ -92,21 +92,6 @@ function GameObject:update(dt)
 	end
 end
 
-
-
---local pot = {}
---function pot:onDestruction(value)
---    print(value)
---end
---local b = {}
---function b:moveToXY(obj, callback)
---    callback(obj, 100);  -- object instance is always the first param of a ":"-style func
---end
---b:moveToXY(pot, pot.onDestruction) -- passing object instance and a function
---
---
-
-
 function GameObject:moveToXY(newX,newY,time,callback)
 	self.tween = Timer.tween(time, {
 		-- Vehicle's fuel is depleted as it moves from left to right
@@ -129,6 +114,6 @@ function GameObject:render(adjacentOffsetX, adjacentOffsetY)
         love.graphics.setColor(255, 255, 255, 64)
     end
     
-    love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.states[self.state].frame or self.frame],
+    love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.state and self.states[self.state].frame or self.frame],
         self.x + adjacentOffsetX, self.y + adjacentOffsetY)
 end

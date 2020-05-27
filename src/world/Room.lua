@@ -9,6 +9,10 @@
 Room = Class{}
 
 function Room:init(player)
+
+    -- reference to player for collisions, etc.
+    self.player = player
+    
     self.width = MAP_WIDTH
     self.height = MAP_HEIGHT
 
@@ -30,9 +34,6 @@ function Room:init(player)
     table.insert(self.doorways, Doorway('left', false, self))
     table.insert(self.doorways, Doorway('right', false, self))
 
-    -- reference to player for collisions, etc.
-    self.player = player
-
     -- used for centering the dungeon rendering
     self.renderOffsetX = MAP_RENDER_OFFSET_X
     self.renderOffsetY = MAP_RENDER_OFFSET_Y
@@ -50,16 +51,25 @@ function Room:generateEntities()
 
     for i = 1, 10 do
         local type = types[math.random(#types)]
+        
+		while (not entityX and not entityY) or 
+				(entityX >= self.player.x - TILE_SIZE and entityY >= self.player.y - TILE_SIZE and 
+				entityX <= self.player.x + self.player.width + TILE_SIZE and 
+				entityY <= self.player.y + self.player.height + TILE_SIZE) do
+		
+			entityX = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
+						VIRTUAL_WIDTH - TILE_SIZE * 2 - 16)
+			entityY = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
+						VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
+		end
 
         table.insert(self.entities, Entity {
             animations = ENTITY_DEFS[type].animations,
             walkSpeed = ENTITY_DEFS[type].walkSpeed or 20,
 
             -- ensure X and Y are within bounds of the map
-            x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
-                VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
-            y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
-                VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16),
+            x = entityX,
+            y = entityY,
             
             width = 16,
             height = 16,
@@ -73,6 +83,9 @@ function Room:generateEntities()
         }
 
         self.entities[i]:changeState('walk')
+        
+        entityX = nil
+        entityY = nil
     end
 end
 
@@ -80,12 +93,22 @@ end
     Randomly creates an assortment of obstacles for the player to navigate around.
 ]]
 function Room:generateObjects()
+
+	while (not switchX and not switchY) or 
+    		(switchX >= self.player.x - TILE_SIZE * 2 and switchY >= self.player.y - TILE_SIZE * 2 and 
+    		switchX <= self.player.x + TILE_SIZE * 3 and 
+    		switchY <= self.player.y + TILE_SIZE * 3) do
+    	
+    	switchX = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
+                    VIRTUAL_WIDTH - TILE_SIZE * 2 - 16)
+    	switchY = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
+                    VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
+    end
+
 	local switch = GameObject(
         GAME_OBJECT_DEFS['switch'],
-        math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
-                    VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
-        math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
-                    VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
+        switchX,
+        switchY
     )
     -- define a function for the switch that will open all doors in the room
     switch.onCollide = function(entity)
@@ -105,7 +128,12 @@ function Room:generateObjects()
 	
     table.insert(self.objects, switch)
     
-    while (not potX and not potY) or (potX == switch.x and potY == switch.y) do
+    while (not potX and not potY) or 
+    		(potX >= switch.x and potY >= switch.y and 
+    		potX <= switch.x + TILE_SIZE and potY <= switch.y + TILE_SIZE) or 
+    		(potX >= self.player.x - TILE_SIZE * 2 and potY >= self.player.y - TILE_SIZE * 2 and 
+    		potX <= self.player.x + TILE_SIZE * 3 and 
+    		potY <= self.player.y + TILE_SIZE * 3) do
     	potX = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
                     VIRTUAL_WIDTH - TILE_SIZE * 2 - 16)
     	potY = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
