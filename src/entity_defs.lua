@@ -30,6 +30,90 @@ ENTITY_DEFS = {
                 interval = 0.15,
                 texture = 'character-walk'
             },
+            ['walk-with-pot-left'] = {
+                frames = {13, 14, 15, 16},
+                interval = 0.15,
+                texture = 'character-walk-with-pot'
+            },
+            ['walk-with-pot-right'] = {
+                frames = {5, 6, 7, 8},
+                interval = 0.15,
+                texture = 'character-walk-with-pot'
+            },
+            ['walk-with-pot-down'] = {
+                frames = {1, 2, 3, 4},
+                interval = 0.15,
+                texture = 'character-walk-with-pot'
+            },
+            ['walk-with-pot-up'] = {
+                frames = {9, 10, 11, 12},
+                interval = 0.15,
+                texture = 'character-walk-with-pot'
+            },
+            ['pot-lift-left'] = {
+                frames = {10, 11, 12},
+                interval = 0.20,
+                looping = false,
+                texture = 'character-pot-lift'
+            },
+            ['pot-lift-right'] = {
+                frames = {4, 5, 6},
+                interval = 0.20,
+                looping = false,
+                texture = 'character-pot-lift'
+            },
+            ['pot-lift-down'] = {
+                frames = {1, 2, 3},
+                interval = 0.20,
+                looping = false,
+                texture = 'character-pot-lift'
+            },
+            ['pot-lift-up'] = {
+                frames = {7, 8, 9},
+                interval = 0.20,
+                looping = false,
+                texture = 'character-pot-lift'
+            },
+            ['pot-drop-left'] = {
+                frames = {12, 11, 10},
+                interval = 0.1,
+                looping = false,
+                texture = 'character-pot-lift'
+            },
+            ['pot-drop-right'] = {
+                frames = {6, 5, 4},
+                interval = 0.1,
+                looping = false,
+                texture = 'character-pot-lift'
+            },
+            ['pot-drop-down'] = {
+                frames = {3, 2, 1},
+                interval = 0.1,
+                looping = false,
+                texture = 'character-pot-lift'
+            },
+            ['pot-drop-up'] = {
+                frames = {9, 8, 7},
+                interval = 0.1,
+                looping = false,
+                texture = 'character-pot-lift'
+            },
+            ['pot-idle-left'] = {
+                frames = {12},
+                texture = 'character-pot-lift'
+            },
+            ['pot-idle-right'] = {
+                frames = {6},
+                texture = 'character-pot-lift'
+            },
+            ['pot-idle-down'] = {
+                frames = {3},
+                texture = 'character-pot-lift'
+            },
+            ['pot-idle-up'] = {
+                frames = {9},
+                texture = 'character-pot-lift'
+            },
             ['idle-left'] = {
                 frames = {13},
                 texture = 'character-walk'

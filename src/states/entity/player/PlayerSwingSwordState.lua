@@ -8,9 +8,9 @@
 
 PlayerSwingSwordState = Class{__includes = BaseState}
 
-function PlayerSwingSwordState:init(player, dungeon)
+function PlayerSwingSwordState:init(player, room)
     self.player = player
-    self.dungeon = dungeon
+    self.room = room
 
     -- render offset for spaced character sprite
     self.player.offsetY = 5
@@ -57,7 +57,7 @@ end
 
 function PlayerSwingSwordState:update(dt)
     -- check if hitbox collides with any entities in the scene
-    for k, entity in pairs(self.dungeon.currentRoom.entities) do
+    for k, entity in pairs(self.room.entities) do
         if entity:collides(self.swordHitbox) then
             entity:damage(1)
             gSounds['hit-enemy']:play()

@@ -14,7 +14,7 @@ function Animation:init(def)
     self.frames = def.frames
     self.interval = def.interval
     self.texture = def.texture
-    self.looping = def.looping or true
+    self.looping = def.looping == nil and true or false
 
     self.timer = 0
     self.currentFrame = 1
@@ -30,7 +30,7 @@ function Animation:refresh()
 end
 
 function Animation:update(dt)
-    -- if not a looping animation and we've played at least once, exit
+	-- if not a looping animation and we've played at least once, exit
     if not self.looping and self.timesPlayed > 0 then
         return
     end
@@ -40,6 +40,7 @@ function Animation:update(dt)
         self.timer = self.timer + dt
 
         if self.timer > self.interval then
+        	
             self.timer = self.timer % self.interval
 
             self.currentFrame = math.max(1, (self.currentFrame + 1) % (#self.frames + 1))
@@ -47,6 +48,10 @@ function Animation:update(dt)
             -- if we've looped back to the beginning, record
             if self.currentFrame == 1 then
                 self.timesPlayed = self.timesPlayed + 1
+                --if looping not need then change current frame to last frame
+                if not self.looping then
+                	self.currentFrame = #self.frames
+                end
             end
         end
     end

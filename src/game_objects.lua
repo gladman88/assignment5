@@ -25,6 +25,31 @@ GAME_OBJECT_DEFS = {
         }
     },
     ['pot'] = {
-        -- TODO
+        type = 'pot',
+        texture = 'tiles',
+        frame = 33,
+        width = 16,
+        height = 16,
+        solid = true,
+        movable = true,
+        destroyable = true,
+        defaultState = 'unbroken',
+        states = {
+            ['unbroken'] = {
+                frame = 33
+            },
+            ['broken'] = {
+                frame = 52
+            }
+        }
+    },
+    ['heart'] = {
+        type = 'heart',
+        texture = 'hearts',
+        frame = 5,
+        width = 16,
+        height = 16,
+        solid = false,
+        consumable = true
     }
 }

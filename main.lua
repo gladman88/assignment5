@@ -58,3 +58,11 @@ function love.draw()
     gStateMachine:render()
     push:finish()
 end
+
+function addToLog(text,woLineBreak)
+	if not woLineBreak then
+    	love.filesystem.append('logs.txt', "\n"..text)
+    else
+    	love.filesystem.append('logs.txt', " "..text)
+    end
+end

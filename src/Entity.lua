@@ -45,7 +45,8 @@ function Entity:createAnimations(animations)
         animationsReturned[k] = Animation {
             texture = animationDef.texture or 'entities',
             frames = animationDef.frames,
-            interval = animationDef.interval
+            interval = animationDef.interval,
+            looping = animationDef.looping
         }
     end
 
@@ -56,12 +57,16 @@ end
     AABB with some slight shrinkage of the box on the top side for perspective.
 ]]
 function Entity:collides(target)
-    return not (self.x + self.width < target.x or self.x > target.x + target.width or
-                self.y + self.height < target.y or self.y > target.y + target.height)
+    return not (self.x + self.width <= target.x or self.x >= target.x + target.width or
+                self.y + self.height <= target.y or self.y >= target.y + target.height)
 end
 
 function Entity:damage(dmg)
     self.health = self.health - dmg
+end
+
+function Entity:heal(h)
+    self.health = math.min(6,self.health + h)
 end
 
 function Entity:goInvulnerable(duration)
@@ -69,8 +74,8 @@ function Entity:goInvulnerable(duration)
     self.invulnerableDuration = duration
 end
 
-function Entity:changeState(name)
-    self.stateMachine:change(name)
+function Entity:changeState(name, params)
+    self.stateMachine:change(name, params)
 end
 
 function Entity:changeAnimation(name)

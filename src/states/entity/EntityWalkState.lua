@@ -8,11 +8,11 @@
 
 EntityWalkState = Class{__includes = BaseState}
 
-function EntityWalkState:init(entity, dungeon)
+function EntityWalkState:init(entity, room)
     self.entity = entity
     self.entity:changeAnimation('walk-down')
 
-    self.dungeon = dungeon
+    self.room = room
 
     -- used for AI control
     self.moveDuration = 0
@@ -59,6 +59,38 @@ function EntityWalkState:update(dt)
             self.bumped = true
         end
     end
+    
+    -- if object is solid
+    for k, object in pairs(self.room.objects) do
+        if self.entity:collides(object) then
+        	if object.solid then
+        		self.bumped = true
+        	
+    			if self.entity.direction == 'left' then
+            		self.entity.x = object.x + object.width
+			    elseif self.entity.direction == 'right' then
+            		self.entity.x = object.x - self.entity.width
+			    elseif self.entity.direction == 'up' then
+			    	if self.entity == self.room.player then
+		            	self.entity.y = object.y + object.height - self.entity.height / 2
+		            else
+		            	self.entity.y = object.y + object.height
+		            end
+			    elseif self.entity.direction == 'down' then
+            		self.entity.y = object.y - self.entity.height
+    			end
+        	end
+        	
+            object.onCollide(self.entity)
+       		-- trigger collision callback on object
+        	if self.entity == self.room.player then
+            	if object.consumable then
+            		object:onConsume()
+            		table.remove(self.room.objects, k)
+            	end
+            end
+        end
+    end
 end
 
 function EntityWalkState:processAI(params, dt)
@@ -92,7 +124,7 @@ function EntityWalkState:render()
     love.graphics.draw(gTextures[anim.texture], gFrames[anim.texture][anim:getCurrentFrame()],
         math.floor(self.entity.x - self.entity.offsetX), math.floor(self.entity.y - self.entity.offsetY))
     
-    -- love.graphics.setColor(255, 0, 255, 255)
-    -- love.graphics.rectangle('line', self.entity.x, self.entity.y, self.entity.width, self.entity.height)
-    -- love.graphics.setColor(255, 255, 255, 255)
+    --love.graphics.setColor(255, 0, 255, 255)
+--    love.graphics.rectangle('line', self.entity.x, self.entity.y, self.entity.width, self.entity.height)
+--    love.graphics.setColor(255, 255, 255, 255)
 end

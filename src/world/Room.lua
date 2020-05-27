@@ -68,7 +68,7 @@ function Room:generateEntities()
         })
 
         self.entities[i].stateMachine = StateMachine {
-            ['walk'] = function() return EntityWalkState(self.entities[i]) end,
+            ['walk'] = function() return EntityWalkState(self.entities[i],self) end,
             ['idle'] = function() return EntityIdleState(self.entities[i]) end
         }
 
@@ -80,30 +80,105 @@ end
     Randomly creates an assortment of obstacles for the player to navigate around.
 ]]
 function Room:generateObjects()
-    table.insert(self.objects, GameObject(
+	local switch = GameObject(
         GAME_OBJECT_DEFS['switch'],
         math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
                     VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
         math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
                     VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
-    ))
-
-    -- get a reference to the switch
-    local switch = self.objects[1]
-
+    )
     -- define a function for the switch that will open all doors in the room
-    switch.onCollide = function()
-        if switch.state == 'unpressed' then
-            switch.state = 'pressed'
-            
-            -- open every door in the room if we press the switch
-            for k, doorway in pairs(self.doorways) do
-                doorway.open = true
-            end
+    switch.onCollide = function(entity)
+    	if entity == self.player then
+			if switch.state == 'unpressed' then
+				switch.state = 'pressed'
+			
+				-- open every door in the room if we press the switch
+				for k, doorway in pairs(self.doorways) do
+					doorway.open = true
+				end
 
-            gSounds['door']:play()
+				gSounds['door']:play()
+			end
         end
     end
+	
+    table.insert(self.objects, switch)
+    
+    while (not potX and not potY) or (potX == switch.x and potY == switch.y) do
+    	potX = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
+                    VIRTUAL_WIDTH - TILE_SIZE * 2 - 16)
+    	potY = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
+                    VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
+    end
+    
+	local pot = GameObject(
+        GAME_OBJECT_DEFS['pot'],
+        potX,
+        potY
+    )
+    -- define a function for the pot if needed
+    pot.onCollide = function(entity)
+    	if pot.tween then
+    		if entity ~= self.player then
+				entity:damage(1)
+				gSounds['hit-enemy']:play()
+				pot.onDestruction()
+				pot.tween:remove()
+				pot.tween = nil
+			end
+	   	end
+    end
+    
+    -- define a function for the pot if needed
+    pot.onDestruction = function()
+        if pot.state == 'unbroken' then
+            pot.state = 'broken'
+            gSounds['hit-enemy']:play()
+            pot:flashingOn(1)
+            Timer.after(1, function()
+				for k,obj in pairs(self.objects) do
+					if obj == pot then
+						table.remove(self.objects,k)
+					end
+				end            	
+            end)
+        end        
+    end
+    -- define a function for the pot if needed
+    pot.onTouchingWall = function()
+    	pot.onDestruction()
+    end
+	
+    table.insert(self.objects, pot)
+end
+
+--[[
+    Randomly creates an assortment of obstacles for the player to navigate around.
+]]
+function Room:generateHeart(x,y)
+	if self.player.direction == "down" then
+        y = self.player.y + self.player.height
+    elseif self.player.direction == "up" then
+        y = self.player.y - 1 - GAME_OBJECT_DEFS['heart'].height
+    elseif self.player.direction == "left" then
+        x = self.player.x - 1 - GAME_OBJECT_DEFS['heart'].width
+    elseif self.player.direction == "right" then
+        x = self.player.x + self.player.width
+    end
+    
+	local heart = GameObject(
+        GAME_OBJECT_DEFS['heart'],
+        x,
+        y
+    )
+    
+    -- define a function for the heart that will restore 2 health of player
+    heart.onConsume = function()
+    	self.player:heal(2)
+    end
+    
+    table.insert(self.objects, heart)
 end
 
 --[[
@@ -157,7 +232,12 @@ function Room:update(dt)
 
         -- remove entity from the table if health is <= 0
         if entity.health <= 0 then
-            entity.dead = true
+        	if not entity.dead then
+            	entity.dead = true
+            	if math.random(5) == 1 then
+            		self:generateHeart(entity.x,entity.y)
+            	end
+            end
         elseif not entity.dead then
             entity:processAI({room = self}, dt)
             entity:update(dt)
@@ -173,16 +253,17 @@ function Room:update(dt)
                 gStateMachine:change('game-over')
             end
         end
+        
+        
     end
 
     for k, object in pairs(self.objects) do
         object:update(dt)
-
-        -- trigger collision callback on object
-        if self.player:collides(object) then
-            object:onCollide()
-        end
     end
+end
+
+function Room:flyingPotHandler()
+
 end
 
 function Room:render()
@@ -201,7 +282,12 @@ function Room:render()
         doorway:render(self.adjacentOffsetX, self.adjacentOffsetY)
     end
 
+	local pot = nil
+	
     for k, object in pairs(self.objects) do
+    	if object.type == "pot" then
+    		 pot = object
+    	end
         object:render(self.adjacentOffsetX, self.adjacentOffsetY)
     end
 
@@ -235,4 +321,9 @@ function Room:render()
     end
 
     love.graphics.setStencilTest()
+    
+    if pot and (self.player.currentAnimation.texture == "character-pot-lift" or  
+    	self.player.currentAnimation.texture == "character-walk-with-pot") then
+        pot:render(self.adjacentOffsetX, self.adjacentOffsetY)
+    end
 end
